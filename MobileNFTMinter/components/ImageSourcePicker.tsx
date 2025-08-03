@@ -28,7 +28,7 @@ const ImageSourcePicker: React.FC<ImageSourcePickerProps> = ({
   const handleCameraPress = () => {
     const options = {
       mediaType: 'photo' as MediaType,
-      quality: 0.8,
+      quality: 0.8 as const,
       maxWidth: 1920,
       maxHeight: 1920,
     };
@@ -52,7 +52,7 @@ const ImageSourcePicker: React.FC<ImageSourcePickerProps> = ({
   const handleGalleryPress = () => {
     const options = {
       mediaType: 'photo' as MediaType,
-      quality: 0.8,
+      quality: 0.8 as const,
       maxWidth: 1920,
       maxHeight: 1920,
       selectionLimit: 1,

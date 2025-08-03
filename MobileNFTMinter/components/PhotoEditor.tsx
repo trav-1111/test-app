@@ -60,11 +60,11 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({
           const offsetX = (width - size) / 2;
           const offsetY = (height - size) / 2;
 
-          const croppedImageUri = await ImageEditor.cropImage(editedImageUri, {
+          const cropResult = await ImageEditor.cropImage(editedImageUri, {
             offset: {x: offsetX, y: offsetY},
             size: {width: size, height: size},
           });
-          setEditedImageUri(croppedImageUri);
+          setEditedImageUri(cropResult.uri);
         } catch (error) {
           Alert.alert('Error', 'Failed to crop image');
         } finally {
@@ -147,8 +147,6 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({
               maximumValue={2}
               value={brightness}
               onValueChange={setBrightness}
-              thumbStyle={styles.sliderThumb}
-              trackStyle={styles.sliderTrack}
               minimumTrackTintColor="#007AFF"
               maximumTrackTintColor="#E5E5E5"
             />
@@ -163,8 +161,6 @@ const PhotoEditor: React.FC<PhotoEditorProps> = ({
               maximumValue={2}
               value={contrast}
               onValueChange={setContrast}
-              thumbStyle={styles.sliderThumb}
-              trackStyle={styles.sliderTrack}
               minimumTrackTintColor="#007AFF"
               maximumTrackTintColor="#E5E5E5"
             />
@@ -257,15 +253,6 @@ const styles = StyleSheet.create({
   slider: {
     flex: 1,
     height: 40,
-  },
-  sliderThumb: {
-    backgroundColor: '#007AFF',
-    width: 20,
-    height: 20,
-  },
-  sliderTrack: {
-    height: 4,
-    borderRadius: 2,
   },
   sliderValue: {
     color: '#fff',

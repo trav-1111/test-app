@@ -15,7 +15,6 @@ export default function MintButton() {
     connection,
     selectedAccount,
     authorizeSession,
-    RPC_ENDPOINT,
   );
   const mwaWallet = useMWAWallet(authorizeSession, selectedAccount);
 
