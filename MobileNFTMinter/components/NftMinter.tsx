@@ -10,14 +10,16 @@ import {
   TouchableWithoutFeedback,
   TextInput,
   Linking,
+  TouchableOpacity,
 } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
 import {Metaplex} from '@metaplex-foundation/js';
 
 import uploadToIPFS from '../ipfs/uploadToIPFS';
 import useMetaplex from '../metaplex-util/useMetaplex';
 import {useAuthorization} from './providers/AuthorizationProvider';
 import {RPC_ENDPOINT, useConnection} from './providers/ConnectionProvider';
+import ImageSourcePicker from './ImageSourcePicker';
+import PhotoEditor from './PhotoEditor';
 
 enum MintingStep {
   None = 'None',
@@ -40,18 +42,24 @@ const NftMinter = () => {
   const {metaplex} = useMetaplex(connection, selectedAccount, authorizeSession);
   const [mintAddress, setMintAddress] = useState<string | null>(null);
   const [txSignature, setTxSignature] = useState<string | null>(null);
+  
+  // New state for camera and editing functionality
+  const [showImageSourcePicker, setShowImageSourcePicker] = useState(false);
+  const [showPhotoEditor, setShowPhotoEditor] = useState(false);
+  const [originalImage, setOriginalImage] = useState<string | null>(null);
 
-  const handleSelectImage = async () => {
-    const photo = await launchImageLibrary({
-      selectionLimit: 1,
-      mediaType: 'photo',
-    });
-    const selectedPhoto = photo?.assets?.[0];
-    if (!selectedPhoto?.uri) {
-      console.warn('Selected photo not found');
-      return;
-    }
-    setSelectedImage(selectedPhoto.uri);
+  const handleSelectImage = () => {
+    setShowImageSourcePicker(true);
+  };
+
+  const handleImageSelected = (imageUri: string) => {
+    setOriginalImage(imageUri);
+    setSelectedImage(imageUri);
+    setShowPhotoEditor(true);
+  };
+
+  const handlePhotoEdited = (editedImageUri: string) => {
+    setSelectedImage(editedImageUri);
   };
 
   const mintNft = useCallback(
@@ -99,10 +107,19 @@ const NftMinter = () => {
   return (
     <View style={styles.container}>
       {selectedImage ? (
-        <Image source={{uri: selectedImage}} style={styles.image} />
+        <View style={styles.imageContainer}>
+          <Image source={{uri: selectedImage}} style={styles.image} />
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => setShowPhotoEditor(true)}>
+            <Text style={styles.editButtonText}>✏️ Edit Photo</Text>
+          </TouchableOpacity>
+        </View>
       ) : (
         <View style={{marginBottom: 16}}>
-          <Text>Select an image from your Photo Library to get started! </Text>
+          <Text style={styles.instructionText}>
+            Take a photo or select from your gallery to get started! 
+          </Text>
         </View>
       )}
 
@@ -110,7 +127,7 @@ const NftMinter = () => {
         <View style={styles.pickImageButton}>
           <Button
             onPress={handleSelectImage}
-            title="Pick an image"
+            title={selectedImage ? "Choose New Photo" : "📷 Take/Select Photo"}
             disabled={isLoading}
           />
         </View>
@@ -239,6 +256,23 @@ const NftMinter = () => {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {/* Image Source Picker Modal */}
+      <ImageSourcePicker
+        visible={showImageSourcePicker}
+        onClose={() => setShowImageSourcePicker(false)}
+        onImageSelected={handleImageSelected}
+      />
+
+      {/* Photo Editor Modal */}
+      {originalImage && (
+        <PhotoEditor
+          imageUri={originalImage}
+          visible={showPhotoEditor}
+          onClose={() => setShowPhotoEditor(false)}
+          onSave={handlePhotoEdited}
+        />
+      )}
     </View>
   );
 };
@@ -264,10 +298,33 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     width: '50%',
   },
+  imageContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   image: {
     width: 300,
     height: 300,
-    marginBottom: 20,
+    marginBottom: 10,
+    borderRadius: 8,
+  },
+  editButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginTop: 8,
+  },
+  editButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  instructionText: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#666',
+    paddingHorizontal: 20,
   },
   centeredView: {
     flex: 1,
